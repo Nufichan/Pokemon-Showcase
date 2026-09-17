@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Showcase Points Calculator</title>
+<style>
+  :root{
+    --bg-1:#0b1330;
+    --bg-2:#2c1657;
+    --bg-3:#4a1f6b;
+    --card:rgba(255,255,255,0.06);
+    --card-border:rgba(255,255,255,0.14);
+    --text:#f2eefb;
+    --text-dim:#b6aed6;
+    --gold:#ffcb05;
+    --gold-deep:#e0a800;
+    --coral:#ff5a6e;
+    --teal:#43d9ad;
+    --field-bg:rgba(255,255,255,0.08);
+    --field-border:rgba(255,255,255,0.18);
+    --radius:16px;
+    --font: 'Poppins', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  }
+  :root[data-theme="light"]{
+    --bg-1:#eef1ff; --bg-2:#e3d9ff; --bg-3:#ffe3ef;
+    --card:rgba(255,255,255,0.55); --card-border:rgba(60,40,100,0.14);
+    --text:#241a3d; --text-dim:#5c5379;
+    --field-bg:rgba(255,255,255,0.7); --field-border:rgba(60,40,100,0.18);
+  }
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){
+      --bg-1:#eef1ff; --bg-2:#e3d9ff; --bg-3:#ffe3ef;
+      --card:rgba(255,255,255,0.55); --card-border:rgba(60,40,100,0.14);
+      --text:#241a3d; --text-dim:#5c5379;
+      --field-bg:rgba(255,255,255,0.7); --field-border:rgba(60,40,100,0.18);
+    }
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family:var(--font);
+    color:var(--text);
+    background:
+      radial-gradient(circle at 15% 8%, rgba(255,203,5,0.16), transparent 40%),
+      radial-gradient(circle at 85% 92%, rgba(67,217,173,0.14), transparent 45%),
+      linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 55%, var(--bg-3) 100%);
+    display:flex;
+    justify-content:center;
+    padding:40px 16px 64px;
+  }
+  .wrap{width:100%; max-width:480px;}
+  header{text-align:center; margin-bottom:28px;}
+  .logo-word{display:flex; align-items:baseline; justify-content:center; gap:6px; margin-bottom:10px;}
+  .logo-img{
+    max-height:64px; max-width:80%; margin:0 auto 10px; display:block;
+  }
+  h1{font-size:1.05rem; font-weight:600; margin:0 0 4px; color:var(--text);}
+  .tagline{color:var(--text-dim); font-size:0.85rem; margin:0;}
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:var(--radius);
+    padding:24px;
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+    box-shadow:0 20px 50px rgba(0,0,0,0.25);
+  }
+  .field{margin-bottom:18px;}
+  .autocomplete-wrap{position:relative;}
+  .suggestions{
+    position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:20;
+    max-height:220px; overflow-y:auto;
+    background:var(--bg-2); border:1px solid var(--field-border); border-radius:10px;
+    box-shadow:0 14px 30px rgba(0,0,0,0.35);
+    display:none;
+  }
+  .suggestions.show{display:block;}
+  .suggestions .opt{
+    padding:9px 13px; font-size:0.9rem; color:var(--text); cursor:pointer;
+  }
+  .suggestions .opt:hover, .suggestions .opt.active{background:rgba(255,203,5,0.16);}
+  .suggestions .none{padding:9px 13px; font-size:0.85rem; color:var(--text-dim);}
+  .field label{
+    display:block; font-size:0.78rem; font-weight:600; letter-spacing:0.02em;
+    color:var(--text-dim); margin-bottom:7px;
+  }
+  .input-base{
+    width:100%; padding:11px 13px; border-radius:10px;
+    border:1px solid var(--field-border); background:var(--field-bg);
+    color:var(--text); font-family:var(--font); font-size:0.95rem;
+    outline:none; transition:border-color .15s, background .15s;
+  }
+  .input-base:focus{border-color:var(--gold); background:rgba(255,255,255,0.12);}
+  :root[data-theme="light"] .input-base:focus, @media (prefers-color-scheme:light){.input-base:focus{background:rgba(255,255,255,0.9);}}
+  select.input-base{ -webkit-appearance:none; appearance:none;
+    background-image:linear-gradient(45deg, transparent 50%, var(--text-dim) 50%), linear-gradient(135deg, var(--text-dim) 50%, transparent 50%);
+    background-position: calc(100% - 18px) center, calc(100% - 13px) center;
+    background-size:5px 5px, 5px 5px; background-repeat:no-repeat;
+  }
+  .row3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .hint{font-size:0.72rem; color:var(--text-dim); margin-top:5px;}
+
+  .btn{
+    width:100%; padding:13px; margin-top:6px; border:none; border-radius:10px;
+    background:linear-gradient(90deg, var(--gold), var(--gold-deep));
+    color:#231600; font-weight:700; font-size:0.95rem; letter-spacing:0.02em;
+    cursor:pointer; transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .btn:hover{transform:translateY(-1px); box-shadow:0 8px 20px rgba(255,203,5,0.3);}
+  .btn:active{transform:translateY(0);}
+  .btn:disabled{opacity:0.5; cursor:not-allowed; transform:none; box-shadow:none;}
+
+  .result{
+    margin-top:22px; padding-top:20px; border-top:1px solid var(--card-border);
+    text-align:center; display:none;
+  }
+  .result.show{display:block; animation:reveal .35s ease;}
+  @keyframes reveal{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+  .result .score{
+    font-size:2.6rem; font-weight:700; line-height:1;
+    background:linear-gradient(90deg, var(--gold), var(--teal));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .result .score-label{font-size:0.78rem; color:var(--text-dim); margin-top:4px;}
+  .breakdown{
+    margin-top:16px; display:grid; grid-template-columns:1fr 1fr; gap:8px;
+    text-align:left;
+  }
+  .breakdown div{
+    background:var(--field-bg); border:1px solid var(--field-border);
+    border-radius:8px; padding:8px 10px;
+  }
+  .breakdown .k{font-size:0.68rem; color:var(--text-dim); display:block; margin-bottom:2px;}
+  .breakdown .v{font-size:0.88rem; font-weight:600;}
+  .xxl-badge{
+    display:inline-block; margin-top:10px; padding:3px 10px; border-radius:100px;
+    background:rgba(255,90,110,0.18); color:var(--coral); font-size:0.72rem; font-weight:700;
+    border:1px solid rgba(255,90,110,0.35);
+  }
+  .error{
+    margin-top:14px; font-size:0.82rem; color:var(--coral); text-align:center; display:none;
+  }
+  .error.show{display:block;}
+  footer{text-align:center; margin-top:20px; color:var(--text-dim); font-size:0.7rem;}
+  .socials{display:flex; justify-content:center; gap:16px; margin-top:28px;}
+  .social{
+    width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:transparent; border:1px solid var(--card-border);
+    transition:transform .15s ease, border-color .15s ease;
+  }
+  .social svg{width:19px; height:19px; fill:#000;}
+  .social:hover{transform:translateY(-2px); border-color:var(--gold);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/2/23/Pok%C3%A9mon_GO_logo.svg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" alt="Pokémon GO logo" class="logo-img">
+    <h1>Showcase Points Calculator</h1>
+    <p class="tagline">Enter a Pokémon's stats to estimate its Showcase score</p>
+  </header>
+
+  <div class="card">
+    <div class="field autocomplete-wrap">
+      <label for="species">Pokémon</label>
+      <input class="input-base" id="species" autocomplete="off" placeholder="Type to search…">
+      <div class="suggestions" id="suggestions"></div>
+    </div>
+
+    <div class="field row2">
+      <div>
+        <label for="weight">Weight (kg)</label>
+        <input class="input-base" id="weight" type="number" step="0.01" min="0" placeholder="e.g. 420">
+      </div>
+      <div>
+        <label for="height">Height (m)</label>
+        <input class="input-base" id="height" type="number" step="0.01" min="0" placeholder="e.g. 6.7">
+      </div>
+    </div>
+
+    <div class="field row3">
+      <div>
+        <label for="ivatk">ATK IV</label>
+        <input class="input-base" id="ivatk" type="number" min="0" max="15" list="iv-list" placeholder="0–15">
+      </div>
+      <div>
+        <label for="ivdef">DEF IV</label>
+        <input class="input-base" id="ivdef" type="number" min="0" max="15" list="iv-list" placeholder="0–15">
+      </div>
+      <div>
+        <label for="ivsta">HP IV</label>
+        <input class="input-base" id="ivsta" type="number" min="0" max="15" list="iv-list" placeholder="0–15">
+      </div>
+    </div>
+    <datalist id="iv-list">
+      <option value="0"><option value="1"><option value="2"><option value="3">
+      <option value="4"><option value="5"><option value="6"><option value="7">
+      <option value="8"><option value="9"><option value="10"><option value="11">
+      <option value="12"><option value="13"><option value="14"><option value="15">
+    </datalist>
+
+    <div class="field">
+      <label for="size">Size (Height Group)</label>
+      <select class="input-base" id="size">
+        <option value="XXS">XXS</option>
+        <option value="XS">XS</option>
+        <option value="-" selected>— (Average)</option>
+        <option value="XL">XL</option>
+        <option value="XXL">XXL</option>
+      </select>
+      <p class="hint">Only XXL changes the score — it adds a fixed bonus.</p>
+    </div>
+
+    <button class="btn" id="calc">Calculate score</button>
+
+    <p class="error" id="error"></p>
+
+    <div class="result" id="result">
+      <div class="score" id="score">0</div>
+      <div class="score-label">Showcase Points</div>
+      <div id="xxlbadge"></div>
+      <div class="breakdown">
+        <div><span class="k">IV contribution</span><span class="v" id="b-iv">–</span></div>
+        <div><span class="k">Height contribution</span><span class="v" id="b-h">–</span></div>
+        <div><span class="k">Weight contribution</span><span class="v" id="b-w">–</span></div>
+        <div><span class="k">XXL bonus</span><span class="v" id="b-xxl">–</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="socials">
+    <a href="https://www.facebook.com/AbooSamin" target="_blank" rel="noopener" aria-label="Facebook" class="social">
+      <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M504 256C504 119 393 8 256 8S8 119 8 256c0 123.78 90.69 226.38 209.25 245V327.69h-63V256h63v-54.64c0-62.15 37-96.48 93.67-96.48 27.14 0 55.52 4.84 55.52 4.84v61h-31.28c-30.8 0-40.41 19.12-40.41 38.73V256h68.78l-11 71.69h-57.78V501C413.31 482.38 504 379.78 504 256z"/></svg>
+    </a>
+    <a href="https://www.instagram.com/aboo_samin" target="_blank" rel="noopener" aria-label="Instagram" class="social">
+      <svg viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z"/></svg>
+    </a>
+    <a href="https://x.com/aboosamin" target="_blank" rel="noopener" aria-label="X (Twitter)" class="social">
+      <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M389.2 48h70.6L305.6 224.2 487 464H345L233.7 318.6 106.5 464H35.8L200.7 275.5 26.8 48H172.4L272.9 180.9 389.2 48zM364.4 421.8h39.1L151.1 88h-42L364.4 421.8z"/></svg>
+    </a>
+  </div>
+
+</div>
+
+<script>
+  const RAW = `Bulbasaur|0.7|6.9|1.75|0.8625
+Ivysaur|1.0|13.0|1.75|1.625
+Venusaur|2.0|100.0|1.75|12.5
+Charmander|0.6|8.5|1.75|1.0625
+Charmeleon|1.1|19.0|1.75|2.375
+Charizard|1.7|90.5|1.75|11.3125
+Squirtle|0.5|9.0|1.75|1.125
+Wartortle|1.0|22.5|1.75|2.8125
+Blastoise|1.6|85.5|1.75|10.6875
+Caterpie|0.3|2.9|1.75|0.3625
+Metapod|0.7|9.9|1.75|1.2375
+Butterfree|1.1|32.0|1.75|4.0
+Weedle|0.3|3.2|1.75|0.4
+Kakuna|0.6|10.0|1.75|1.25
+Beedrill|1.0|29.5|1.75|3.6875
+Pidgey|0.3|1.8|1.75|0.225
+Pidgeotto|1.1|30.0|1.75|3.75
+Pidgeot|1.5|39.5|1.75|4.9375
+Rattata|0.3|3.5|1.75|0.4375
+Rattata Alola|0.3|3.8|1.75|0.475
+Raticate|0.7|18.5|1.75|2.3125
+Raticate Alola|0.7|25.5|1.75|3.1875
+Spearow|0.3|2.0|1.75|0.25
+Fearow|1.2|38.0|1.75|4.75
+Ekans|2.0|6.9|1.75|0.8625
+Arbok|3.5|65.0|1.75|8.125
+Pikachu|0.4|6.0|1.75|0.75
+Raichu|0.8|30.0|1.75|3.75
+Raichu Alola|0.7|21.0|1.75|2.625
+Sandshrew|0.6|12.0|1.75|1.5
+Sandshrew Alola|0.7|40.0|1.75|5.0
+Sandslash|1.0|29.5|1.75|3.6875
+Sandslash Alola|1.2|55.0|1.75|6.875
+Nidoran Female|0.4|7.0|1.75|0.875
+Nidorina|0.8|20.0|1.75|2.5
+Nidoqueen|1.3|60.0|2.0|7.5
+Nidoran Male|0.5|9.0|1.75|1.125
+Nidorino|0.9|19.5|1.75|2.4375
+Nidoking|1.4|62.0|2.0|7.75
+Clefairy|0.6|7.5|1.75|0.9375
+Clefable|1.3|40.0|1.75|5.0
+Vulpix|0.6|9.9|1.75|1.2375
+Vulpix Alola|0.6|9.9|1.75|1.2375
+Ninetales|1.1|19.9|2.0|2.4875
+Ninetales Alola|1.1|19.9|2.0|2.4875
+Jigglypuff|0.5|5.5|1.75|0.6875
+Wigglytuff|1.0|12.0|1.75|1.5
+Zubat|0.8|7.5|1.75|0.9375
+Golbat|1.6|55.0|1.75|6.875
+Oddish|0.5|5.4|1.55|0.675
+Gloom|0.8|8.6|1.55|1.075
+Vileplume|1.2|18.6|2.0|2.325
+Paras|0.3|5.4|1.75|0.675
+Parasect|1.0|29.5|1.75|3.6875
+Venonat|1.0|30.0|1.55|3.75
+Venomoth|1.5|12.5|1.55|1.5625
+Diglett|0.2|0.8|2.0|0.1
+Diglett Alola|0.2|1.0|2.0|0.125
+Dugtrio|0.7|33.3|1.75|4.1625
+Dugtrio Alola|0.7|66.6|1.75|8.325
+Meowth|0.4|4.2|1.75|0.525
+Meowth Alola|0.4|4.2|1.75|0.525
+Meowth Galarian|0.4|7.5|1.75|0.9375
+Persian|1.0|32.0|1.75|4.0
+Persian Alola|1.1|33.0|1.75|4.125
+Psyduck|0.8|19.6|1.75|2.45
+Golduck|1.7|76.6|1.55|9.575
+Mankey|0.5|28.0|1.75|3.5
+Primeape|1.0|32.0|1.75|4.0
+Growlithe|0.7|19.0|1.75|2.375
+Growlithe Hisuian|0.8|22.7|1.75|2.8375
+Arcanine|1.9|155.0|1.75|19.375
+Arcanine Hisuian|2.0|168.0|1.75|21.0
+Poliwag|0.6|12.4|1.75|1.55
+Poliwhirl|1.0|20.0|1.75|2.5
+Poliwrath|1.3|54.0|1.75|6.75
+Abra|0.9|19.5|1.75|2.4375
+Kadabra|1.3|56.5|1.75|7.0625
+Alakazam|1.5|48.0|1.75|6.0
+Machop|0.8|19.5|1.75|2.4375
+Machoke|1.5|70.5|1.75|8.8125
+Machamp|1.6|130.0|1.75|16.25
+Bellsprout|0.7|4.0|1.55|0.5
+Weepinbell|1.0|6.4|2.0|0.8
+Victreebel|1.7|15.5|2.0|1.9375
+Tentacool|0.9|45.5|2.0|5.6875
+Tentacruel|1.6|55.0|2.0|6.875
+Geodude|0.4|20.0|1.75|2.5
+Geodude Alola|0.4|20.3|1.75|2.5375
+Graveler|1.0|105.0|1.75|13.125
+Graveler Alola|1.0|110.0|1.75|13.75
+Golem|1.4|300.0|1.75|37.5
+Golem Alola|1.7|316.0|1.75|39.5
+Ponyta|1.0|30.0|1.75|3.75
+Ponyta Galarian|0.8|24.0|1.75|3.0
+Rapidash|1.7|95.0|1.55|11.875
+Rapidash Galarian|1.7|80.0|1.55|10.0
+Slowpoke|1.2|36.0|1.75|4.5
+Slowpoke Galarian|1.2|36.0|1.75|4.5
+Slowbro|1.6|78.5|1.75|9.8125
+Slowbro Galarian|1.6|70.5|1.75|8.8125
+Magnemite|0.3|6.0|2.0|0.75
+Magneton|1.0|60.0|2.0|7.5
+Farfetchd|0.8|15.0|1.75|1.875
+Farfetchd Galarian|0.8|42.0|1.75|5.25
+Doduo|1.4|39.2|1.55|4.9
+Dodrio|1.8|85.2|1.55|10.65
+Seel|1.1|90.0|1.75|11.25
+Dewgong|1.7|120.0|1.75|15.0
+Grimer|0.9|30.0|2.0|3.75
+Grimer Alola|0.7|42.0|2.0|5.25
+Muk|1.2|30.0|2.0|3.75
+Muk Alola|1.0|52.0|2.0|6.5
+Shellder|0.3|4.0|1.75|0.5
+Cloyster|1.5|132.5|1.75|16.5625
+Gastly|1.3|0.1|2.0|0.0125
+Haunter|1.6|0.1|2.0|0.0125
+Gengar|1.5|40.5|2.0|5.0625
+Onix|8.8|210.0|1.75|26.25
+Drowzee|1.0|32.4|1.75|4.05
+Hypno|1.6|75.6|1.55|9.45
+Krabby|0.4|6.5|1.75|0.8125
+Kingler|1.3|60.0|2.0|7.5
+Voltorb|0.5|10.4|2.0|1.3
+Voltorb Hisuian|0.5|13.0|2.0|1.625
+Electrode|1.2|66.6|2.0|8.325
+Electrode Hisuian|1.2|71.0|2.0|8.875
+Exeggcute|0.4|2.5|2.0|0.3125
+Exeggutor|2.0|120.0|2.0|15.0
+Exeggutor Alola|10.9|415.6|2.0|51.95
+Cubone|0.4|6.5|1.75|0.8125
+Marowak|1.0|45.0|1.75|5.625
+Marowak Alola|1.0|34.0|1.75|4.25
+Hitmonlee|1.5|49.8|1.55|6.225
+Hitmonchan|1.4|50.2|1.55|6.275
+Lickitung|1.2|65.5|1.75|8.1875
+Koffing|0.6|1.0|2.0|0.125
+Weezing|1.2|9.5|2.0|1.1875
+Weezing Galarian|3.0|16.0|1.75|2.0
+Rhyhorn|1.0|115.0|1.75|14.375
+Rhydon|1.9|120.0|1.75|15.0
+Chansey|1.1|34.6|1.75|4.325
+Tangela|1.0|35.0|2.0|4.375
+Kangaskhan|2.2|80.0|1.75|10.0
+Horsea|0.4|8.0|1.75|1.0
+Seadra|1.2|25.0|2.0|3.125
+Goldeen|0.6|15.0|2.0|1.875
+Seaking|1.3|39.0|2.0|4.875
+Staryu|0.8|34.5|1.75|4.3125
+Starmie|1.1|80.0|1.75|10.0
+Mr Mime|1.3|54.5|1.55|6.8125
+Mr Mime Galarian|1.4|56.8|1.55|7.1
+Scyther|1.5|56.0|1.75|7.0
+Jynx|1.4|40.6|1.55|5.075
+Electabuzz|1.1|30.0|1.75|3.75
+Magmar|1.3|44.5|1.75|5.5625
+Pinsir|1.5|55.0|1.75|6.875
+Tauros|1.4|88.4|1.75|11.05
+Tauros Paldea Aqua|1.4|110.0|1.75|13.75
+Tauros Paldea Blaze|1.4|85.0|1.75|10.625
+Tauros Paldea Combat|1.4|115.0|1.75|14.375
+Magikarp|0.9|10.0|2.0|1.25
+Gyarados|6.5|235.0|2.0|29.375
+Lapras|2.5|220.0|1.75|27.5
+Ditto|0.3|4.0|2.0|0.5
+Eevee|0.3|6.5|1.75|0.8125
+Vaporeon|1.0|29.0|1.55|3.625
+Jolteon|0.8|24.5|1.55|3.0625
+Flareon|0.9|25.0|1.55|3.125
+Porygon|0.8|36.5|2.0|4.5625
+Omanyte|0.4|7.5|2.0|0.9375
+Omastar|1.0|35.0|2.0|4.375
+Kabuto|0.5|11.5|2.0|1.4375
+Kabutops|1.3|40.5|2.0|5.0625
+Aerodactyl|1.8|59.0|2.0|7.375
+Snorlax|2.1|460.0|1.75|57.5
+Articuno|1.7|55.4|1.75|6.925
+Articuno Galarian|1.7|50.9|1.75|6.3625
+Zapdos|1.6|52.6|1.75|6.575
+Zapdos Galarian|1.6|58.2|1.75|7.275
+Moltres|2.0|60.0|1.75|7.5
+Moltres Galarian|2.0|66.0|1.75|8.25
+Dratini|1.8|3.3|1.75|0.4125
+Dragonair|4.0|16.5|1.75|2.0625
+Dragonite|2.2|210.0|1.75|26.25
+Mewtwo|2.0|122.0|1.75|15.25
+Mew|0.4|4.0|1.75|0.5
+Chikorita|0.89|6.4|1.55|0.8
+Bayleef|1.19|15.8|1.55|1.975
+Meganium|1.8|100.5|1.55|12.5625
+Cyndaquil|0.51|7.9|1.75|0.9875
+Quilava|0.89|19.0|1.75|2.375
+Typhlosion|1.7|79.5|1.75|9.9375
+Typhlosion Hisuian|1.6|69.8|1.75|8.725
+Totodile|0.61|9.5|1.55|1.1875
+Croconaw|1.09|25.0|1.55|3.125
+Feraligatr|2.31|88.8|1.55|11.1
+Sentret|0.79|6.0|1.75|0.75
+Furret|1.8|32.5|1.55|4.0625
+Hoothoot|0.71|21.2|1.75|2.65
+Noctowl|1.6|40.8|1.75|5.1
+Ledyba|0.99|10.8|1.75|1.35
+Ledian|1.4|35.6|1.75|4.45
+Spinarak|0.51|8.5|1.75|1.0625
+Ariados|1.09|33.5|1.75|4.1875
+Crobat|1.8|75.0|1.75|9.375
+Chinchou|0.51|12.0|2.0|1.5
+Lanturn|1.19|22.5|2.0|2.8125
+Pichu|0.3|2.0|1.75|0.25
+Cleffa|0.3|3.0|1.75|0.375
+Igglybuff|0.3|1.0|1.75|0.125
+Togepi|0.3|1.5|1.75|0.1875
+Togetic|0.61|3.2|1.75|0.4
+Natu|0.2|2.0|1.75|0.25
+Xatu|1.5|15.0|1.75|1.875
+Mareep|0.61|7.8|1.75|0.975
+Flaaffy|0.79|13.3|1.75|1.6625
+Ampharos|1.4|61.5|1.75|7.6875
+Bellossom|0.41|5.8|2.0|0.725
+Marill|0.41|8.5|1.75|1.0625
+Azumarill|0.79|28.5|1.75|3.5625
+Sudowoodo|1.19|38.0|2.0|4.75
+Politoed|1.09|33.9|1.75|4.2375
+Hoppip|0.41|0.5|1.75|0.0625
+Skiploom|0.61|1.0|1.75|0.125
+Jumpluff|0.79|3.0|1.75|0.375
+Aipom|0.79|11.5|1.75|1.4375
+Sunkern|0.3|1.8|2.0|0.225
+Sunflora|0.79|8.5|2.0|1.0625
+Yanma|1.19|38.0|1.75|4.75
+Wooper|0.41|8.5|1.75|1.0625
+Wooper Paldea|0.41|11.0|1.75|1.375
+Quagsire|1.4|75.0|1.55|9.375
+Espeon|0.89|26.5|1.55|3.3125
+Umbreon|0.99|27.0|1.55|3.375
+Murkrow|0.51|2.1|2.0|0.2625
+Slowking|2.01|79.5|1.55|9.9375
+Slowking Galarian|1.8|79.5|1.55|9.9375
+Misdreavus|0.71|1.0|1.75|0.125
+Unown|0.51|5.0|1.75|0.625
+Wobbuffet|1.3|28.5|1.75|3.5625
+Girafarig|1.5|41.5|1.75|5.1875
+Pineco|0.61|7.2|1.75|0.9
+Forretress|1.19|125.8|1.75|15.725
+Dunsparce|1.5|14.0|1.75|1.75
+Gligar|1.09|64.8|1.75|8.1
+Steelix|9.19|400.0|1.75|50.0
+Snubbull|0.61|7.8|1.75|0.975
+Granbull|1.4|48.7|1.75|6.0875
+Qwilfish|0.51|3.9|1.75|0.4875
+Qwilfish Hisuian|0.51|3.9|1.75|0.4875
+Scizor|2.01|125.0|1.55|15.625
+Shuckle|0.61|20.5|1.75|2.5625
+Heracross|1.5|54.0|1.75|6.75
+Sneasel|0.89|28.0|1.75|3.5
+Sneasel Hisuian|0.9|27.0|1.75|3.375
+Teddiursa|0.61|8.8|1.75|1.1
+Ursaring|1.8|125.8|1.75|15.725
+Slugma|0.71|35.0|1.75|4.375
+Magcargo|0.79|55.0|1.75|6.875
+Swinub|0.41|6.5|1.75|0.8125
+Piloswine|1.09|55.8|1.75|6.975
+Corsola|0.61|5.0|2.0|0.625
+Corsola Galarian|0.61|0.5|2.0|0.0625
+Remoraid|0.61|12.0|1.75|1.5
+Octillery|0.89|28.5|2.0|3.5625
+Delibird|0.89|16.0|1.75|2.0
+Mantine|2.11|220.0|2.0|27.5
+Skarmory|1.7|50.5|2.0|6.3125
+Houndour|0.61|10.8|1.75|1.35
+Houndoom|1.4|35.0|1.75|4.375
+Kingdra|1.8|152.0|1.75|19.0
+Phanpy|0.51|33.5|2.0|4.1875
+Donphan|1.09|120.0|2.0|15.0
+Porygon2|0.61|32.5|2.0|4.0625
+Stantler|1.4|71.2|1.75|8.9
+Smeargle|1.19|58.0|1.75|7.25
+Tyrogue|0.71|21.0|1.75|2.625
+Hitmontop|1.4|48.0|1.75|6.0
+Smoochum|0.41|6.0|1.75|0.75
+Elekid|0.61|23.5|1.75|2.9375
+Magby|0.71|21.4|1.75|2.675
+Miltank|1.19|75.5|1.75|9.4375
+Blissey|1.5|46.8|1.75|5.85
+Raikou|1.91|178.0|1.75|22.25
+Entei|2.11|198.0|1.75|24.75
+Suicune|2.01|187.0|1.75|23.375
+Larvitar|0.61|72.0|1.75|9.0
+Pupitar|1.19|152.0|1.75|19.0
+Tyranitar|2.01|202.0|2.0|25.25
+Lugia|5.21|216.0|1.75|27.0
+Ho Oh|3.81|199.0|1.75|24.875
+Celebi|0.61|5.0|1.75|0.625
+Treecko|0.51|5.0|1.55|0.625
+Grovyle|0.89|21.6|1.55|2.7
+Sceptile|1.7|52.2|1.55|6.525
+Torchic|0.41|2.5|1.55|0.3125
+Combusken|0.89|19.5|1.55|2.4375
+Blaziken|1.91|52.0|1.55|6.5
+Mudkip|0.41|7.6|1.55|0.95
+Marshtomp|0.71|28.0|1.55|3.5
+Swampert|1.5|81.9|1.55|10.2375
+Poochyena|0.51|13.6|1.75|1.7
+Mightyena|0.99|37.0|1.75|4.625
+Zigzagoon|0.4|17.5|1.75|2.1875
+Zigzagoon Galarian|0.4|17.5|1.75|2.1875
+Linoone|0.5|32.5|1.75|4.0625
+Linoone Galarian|0.5|32.5|1.75|4.0625
+Wurmple|0.3|3.6|1.75|0.45
+Silcoon|0.61|10.0|1.75|1.25
+Beautifly|0.99|28.4|1.75|3.55
+Cascoon|0.71|11.5|1.75|1.4375
+Dustox|1.19|31.6|1.75|3.95
+Lotad|0.51|2.6|2.0|0.325
+Lombre|1.19|32.5|1.75|4.0625
+Ludicolo|1.5|55.0|1.75|6.875
+Seedot|0.51|4.0|1.75|0.5
+Nuzleaf|0.99|28.0|1.75|3.5
+Shiftry|1.3|59.6|1.75|7.45
+Taillow|0.3|2.3|2.0|0.2875
+Swellow|0.71|19.8|2.0|2.475
+Wingull|0.61|9.5|1.75|1.1875
+Pelipper|1.19|28.0|1.75|3.5
+Ralts|0.41|6.6|1.75|0.825
+Kirlia|0.79|20.2|1.75|2.525
+Gardevoir|1.6|48.4|1.55|6.05
+Surskit|0.51|1.7|1.75|0.2125
+Masquerain|0.79|3.6|1.75|0.45
+Shroomish|0.41|4.5|1.75|0.5625
+Breloom|1.19|39.2|1.75|4.9
+Slakoth|0.79|24.0|1.75|3.0
+Vigoroth|1.4|46.5|1.55|5.8125
+Slaking|2.01|130.5|1.55|16.3125
+Nincada|0.51|5.5|1.75|0.6875
+Ninjask|0.79|12.0|1.75|1.5
+Shedinja|0.79|1.2|1.75|0.15
+Whismur|0.61|16.3|1.75|2.0375
+Loudred|0.99|40.5|1.75|5.0625
+Exploud|1.5|84.0|1.55|10.5
+Makuhita|0.99|86.4|1.75|10.8
+Hariyama|2.31|253.8|1.55|31.725
+Azurill|0.2|2.0|1.75|0.25
+Nosepass|0.99|97.0|2.0|12.125
+Skitty|0.61|11.0|1.55|1.375
+Delcatty|1.09|32.6|1.55|4.075
+Sableye|0.51|11.0|1.75|1.375
+Mawile|0.61|11.5|1.75|1.4375
+Aron|0.41|60.0|2.0|7.5
+Lairon|0.89|120.0|2.0|15.0
+Aggron|2.11|360.0|2.0|45.0
+Meditite|0.61|11.2|1.55|1.4
+Medicham|1.3|31.5|1.55|3.9375
+Electrike|0.61|15.2|1.75|1.9
+Manectric|1.5|40.2|1.55|5.025
+Plusle|0.41|4.2|1.75|0.525
+Minun|0.41|4.2|1.75|0.525
+Volbeat|0.71|17.7|1.75|2.2125
+Illumise|0.61|17.7|1.75|2.2125
+Roselia|0.3|2.0|1.75|0.25
+Gulpin|0.41|10.3|2.0|1.2875
+Swalot|1.7|80.0|2.0|10.0
+Carvanha|0.79|20.8|2.0|2.6
+Sharpedo|1.8|88.8|2.0|11.1
+Wailmer|2.01|130.0|2.0|16.25
+Wailord|14.5|398.0|2.0|49.75
+Numel|0.71|24.0|1.55|3.0
+Camerupt|1.91|220.0|1.55|27.5
+Torkoal|0.51|80.4|1.75|10.05
+Spoink|0.71|30.6|1.55|3.825
+Grumpig|0.89|71.5|1.75|8.9375
+Spinda|1.09|5.0|1.55|0.625
+Trapinch|0.71|15.0|1.75|1.875
+Vibrava|1.09|15.3|1.75|1.9125
+Flygon|2.01|82.0|2.0|10.25
+Cacnea|0.41|51.3|2.0|6.4125
+Cacturne|1.3|77.4|2.0|9.675
+Swablu|0.41|1.2|1.75|0.15
+Altaria|1.09|20.6|1.75|2.575
+Zangoose|1.3|40.3|1.75|5.0375
+Seviper|2.69|52.5|1.55|6.5625
+Lunatone|0.99|168.0|2.0|21.0
+Solrock|1.19|154.0|2.0|19.25
+Barboach|0.41|1.9|2.0|0.2375
+Whiscash|0.89|23.6|2.0|2.95
+Corphish|0.61|11.5|1.75|1.4375
+Crawdaunt|1.09|32.8|1.75|4.1
+Baltoy|0.51|21.5|1.75|2.6875
+Claydol|1.5|108.0|1.75|13.5
+Lileep|0.99|23.8|2.0|2.975
+Cradily|1.5|60.4|2.0|7.55
+Anorith|0.71|12.5|1.75|1.5625
+Armaldo|1.5|68.2|2.0|8.525
+Feebas|0.61|7.4|2.0|0.925
+Milotic|6.2|162.0|2.0|20.25
+Castform|0.3|0.8|1.75|0.1
+Castform Rainy|0.3|0.8|1.75|0.1
+Castform Snowy|0.3|0.8|1.75|0.1
+Castform Sunny|0.3|0.8|1.75|0.1
+Kecleon|0.99|22.0|1.55|2.75
+Shuppet|0.61|2.3|1.75|0.2875
+Banette|1.09|12.5|1.75|1.5625
+Duskull|0.79|15.0|1.75|1.875
+Dusclops|1.6|30.6|1.55|3.825
+Tropius|2.01|100.0|2.0|12.5
+Chimecho|0.61|1.0|1.55|0.125
+Absol|1.2|47.0|1.75|5.875
+Wynaut|0.61|14.0|1.75|1.75
+Snorunt|0.71|16.8|1.75|2.1
+Glalie|1.5|256.5|1.75|32.0625
+Spheal|0.79|39.5|1.75|4.9375
+Sealeo|1.09|87.6|1.75|10.95
+Walrein|1.4|150.6|1.75|18.825
+Clamperl|0.41|52.5|2.0|6.5625
+Huntail|1.7|27.0|2.0|3.375
+Gorebyss|1.8|22.6|2.0|2.825
+Relicanth|0.99|23.4|2.0|2.925
+Luvdisc|0.61|8.7|2.0|1.0875
+Bagon|0.61|42.1|1.75|5.2625
+Shelgon|1.09|110.5|1.75|13.8125
+Salamence|1.5|102.6|2.0|12.825
+Beldum|0.61|95.2|2.0|11.9
+Metang|1.19|202.5|2.0|25.3125
+Metagross|1.6|550.0|2.0|68.75
+Regirock|1.7|230.0|1.55|28.75
+Regice|1.8|175.0|1.55|21.875
+Registeel|1.91|205.0|1.55|25.625
+Latias|1.4|40.0|1.55|5.0
+Latios|2.01|60.0|1.55|7.5
+Kyogre|4.5|352.0|1.55|44.0
+Groudon|3.51|950.0|1.55|118.75
+Rayquaza|7.01|206.5|1.55|25.8125
+Jirachi|0.3|1.1|1.55|0.1375
+Deoxys|1.7|60.8|1.55|7.6
+Turtwig|0.4|10.2|1.55|1.275
+Grotle|1.1|97.0|1.55|12.125
+Torterra|2.2|310.0|1.55|38.75
+Chimchar|0.5|6.2|1.75|0.775
+Monferno|0.9|22.0|1.75|2.75
+Infernape|1.2|55.0|1.75|6.875
+Piplup|0.4|5.2|1.75|0.65
+Prinplup|0.8|23.0|1.75|2.875
+Empoleon|1.7|84.5|1.75|10.5625
+Starly|0.3|2.0|1.75|0.25
+Staravia|0.6|15.5|1.75|1.9375
+Staraptor|1.2|24.9|1.75|3.1125
+Bidoof|0.5|20.0|1.75|2.5
+Bibarel|1.0|31.5|1.75|3.9375
+Kricketot|0.3|2.2|1.75|0.275
+Kricketune|1.0|25.5|1.55|3.1875
+Shinx|0.5|9.5|1.75|1.1875
+Luxio|0.9|30.5|1.75|3.8125
+Luxray|1.4|42.0|1.75|5.25
+Budew|0.2|1.2|1.75|0.15
+Roserade|0.9|14.5|1.75|1.8125
+Cranidos|0.9|31.5|2.0|3.9375
+Rampardos|1.6|102.5|2.0|12.8125
+Shieldon|0.5|57.0|2.0|7.125
+Bastiodon|1.3|149.5|2.0|18.6875
+Burmy Plant|0.2|3.4|1.75|0.425
+Burmy Sandy|0.2|3.4|1.75|0.425
+Burmy Trash|0.2|3.4|1.75|0.425
+Wormadam Plant|0.5|6.5|1.75|0.8125
+Wormadam Sandy|0.5|6.5|1.75|0.8125
+Wormadam Trash|0.5|6.5|1.75|0.8125
+Mothim|0.9|23.3|1.75|2.9125
+Combee|0.3|5.5|1.75|0.6875
+Vespiquen|1.2|38.5|1.75|4.8125
+Pachirisu|0.4|3.9|1.75|0.4875
+Buizel|0.7|29.5|1.75|3.6875
+Floatzel|1.1|33.5|1.75|4.1875
+Cherubi|0.4|3.3|2.0|0.4125
+Cherrim|0.5|9.3|2.0|1.1625
+Shellos|0.3|6.3|1.75|0.7875
+Gastrodon|0.9|29.9|1.75|3.7375
+Ambipom|1.2|20.3|1.55|2.5375
+Drifloon|0.4|1.2|2.0|0.15
+Drifblim|1.2|15.0|2.0|1.875
+Buneary|0.4|5.5|1.75|0.6875
+Lopunny|1.2|33.3|1.55|4.1625
+Mismagius|0.9|4.4|2.0|0.55
+Honchkrow|0.9|27.3|2.0|3.4125
+Glameow|0.5|3.9|1.75|0.4875
+Purugly|1.0|43.8|1.55|5.475
+Chingling|0.2|0.6|1.75|0.075
+Stunky|0.4|19.2|1.75|2.4
+Skuntank|1.0|38.0|1.55|4.75
+Bronzor|0.5|60.5|1.75|7.5625
+Bronzong|1.3|187.0|1.75|23.375
+Bonsly|0.5|15.0|1.75|1.875
+Mime Jr|0.6|13.0|1.75|1.625
+Happiny|0.6|24.4|1.75|3.05
+Chatot|0.5|1.9|1.75|0.2375
+Spiritomb|1.0|108.0|2.0|13.5
+Gible|0.7|20.5|2.0|2.5625
+Gabite|1.4|56.0|2.0|7.0
+Garchomp|1.9|95.0|2.0|11.875
+Munchlax|0.6|105.0|1.75|13.125
+Riolu|0.7|20.2|1.75|2.525
+Lucario|1.2|54.0|1.75|6.75
+Hippopotas|0.8|49.5|1.75|6.1875
+Hippowdon|2.0|300.0|1.55|37.5
+Skorupi|0.8|12.0|1.75|1.5
+Drapion|1.3|61.5|1.55|7.6875
+Croagunk|0.7|23.0|1.75|2.875
+Toxicroak|1.3|44.4|1.55|5.55
+Carnivine|1.4|27.0|2.0|3.375
+Finneon|0.4|7.0|2.0|0.875
+Lumineon|1.2|24.0|2.0|3.0
+Mantyke|1.0|65.0|2.0|8.125
+Snover|1.0|50.5|1.75|6.3125
+Abomasnow|2.2|135.5|1.75|16.9375
+Weavile|1.1|34.0|1.55|4.25
+Magnezone|1.2|180.0|1.75|22.5
+Lickilicky|1.7|140.0|1.55|17.5
+Rhyperior|2.4|282.8|1.55|35.35
+Tangrowth|2.0|128.6|1.75|16.075
+Electivire|1.8|138.6|1.55|17.325
+Magmortar|1.6|68.0|1.75|8.5
+Togekiss|1.5|38.0|1.75|4.75
+Yanmega|1.9|51.5|1.55|6.4375
+Leafeon|1.0|25.5|1.55|3.1875
+Glaceon|0.8|25.9|1.55|3.2375
+Gliscor|2.0|42.5|1.55|5.3125
+Mamoswine|2.5|291.0|1.75|36.375
+Porygon Z|0.9|34.0|2.0|4.25
+Gallade|1.6|52.0|1.55|6.5
+Probopass|1.4|340.0|1.75|42.5
+Dusknoir|2.2|106.6|1.75|13.325
+Froslass|1.3|26.6|1.55|3.325
+Rotom|0.3|0.3|1.75|0.0375
+Rotom Fan|0.3|0.3|1.75|0.0375
+Rotom Frost|0.3|0.3|1.75|0.0375
+Rotom Heat|0.3|0.3|1.75|0.0375
+Rotom Mow|0.3|0.3|1.75|0.0375
+Rotom Wash|0.3|0.3|1.75|0.0375
+Uxie|0.3|0.3|1.75|0.0375
+Mesprit|0.3|0.3|1.75|0.0375
+Azelf|0.3|0.3|1.75|0.0375
+Dialga|5.4|683.0|1.55|85.375
+Dialga Origin|7.0|850.0|1.55|85.375
+Palkia|4.2|336.0|1.55|42.0
+Palkia Origin|6.3|660.0|1.55|42.0
+Heatran|1.7|430.0|1.55|53.75
+Regigigas|3.7|420.0|1.55|52.5
+Giratina Altered|4.5|750.0|1.55|93.75
+Giratina Origin|6.9|650.0|1.55|81.25
+Cresselia|1.5|85.6|1.55|10.7
+Phione|0.4|3.1|1.55|0.3875
+Manaphy|0.3|1.4|1.55|0.175
+Darkrai|1.5|50.5|1.55|6.3125
+Shaymin Land|0.2|2.1|1.55|0.2625
+Shaymin Sky|0.4|5.2|1.55|0.65
+Arceus|3.2|320.0|1.55|40.0
+Arceus Bug|3.2|320.0|1.55|40.0
+Arceus Dark|3.2|320.0|1.55|40.0
+Arceus Dragon|3.2|320.0|1.55|40.0
+Arceus Electric|3.2|320.0|1.55|40.0
+Arceus Fairy|3.2|320.0|1.55|40.0
+Arceus Fighting|3.2|320.0|1.55|40.0
+Arceus Fire|3.2|320.0|1.55|40.0
+Arceus Flying|3.2|320.0|1.55|40.0
+Arceus Ghost|3.2|320.0|1.55|40.0
+Arceus Grass|3.2|320.0|1.55|40.0
+Arceus Ground|3.2|320.0|1.55|40.0
+Arceus Ice|3.2|320.0|1.55|40.0
+Arceus Poison|3.2|320.0|1.55|40.0
+Arceus Psychic|3.2|320.0|1.55|40.0
+Arceus Rock|3.2|320.0|1.55|40.0
+Arceus Steel|3.2|320.0|1.55|40.0
+Arceus Water|3.2|320.0|1.55|40.0
+Victini|0.4|4.0|1.55|0.5
+Snivy|0.6|8.1|1.55|1.0125
+Servine|0.8|16.0|1.55|2.0
+Serperior|3.3|63.0|1.55|7.875
+Tepig|0.5|9.9|1.55|1.2375
+Pignite|1.0|55.5|1.55|6.9375
+Emboar|1.6|150.0|1.55|18.75
+Oshawott|0.5|5.9|1.55|0.7375
+Dewott|0.8|24.5|1.55|3.0625
+Samurott|1.5|94.6|1.55|11.825
+Samurott Hisuian|1.5|58.2|1.55|7.275
+Patrat|0.5|11.6|1.55|1.45
+Watchog|1.1|27.0|1.55|3.375
+Lillipup|0.4|4.1|1.75|0.5125
+Herdier|0.9|14.7|1.75|1.8375
+Stoutland|1.2|61.0|1.55|7.625
+Purrloin|0.4|10.1|1.75|1.2625
+Liepard|1.1|37.5|1.55|4.6875
+Pansage|0.6|10.5|1.75|1.3125
+Simisage|1.1|30.5|1.75|3.8125
+Pansear|0.6|11.0|1.75|1.375
+Simisear|1.0|28.0|1.75|3.5
+Panpour|0.6|13.5|1.75|1.6875
+Simipour|1.0|29.0|1.75|3.625
+Munna|0.6|23.3|1.75|2.9125
+Musharna|1.1|60.5|1.55|7.5625
+Pidove|0.3|2.1|1.75|0.2625
+Tranquill|0.6|15.0|1.75|1.875
+Unfezant|1.2|29.0|1.75|3.625
+Blitzle|0.8|29.8|1.75|3.725
+Zebstrika|1.6|79.5|1.75|9.9375
+Roggenrola|0.4|18.0|1.75|2.25
+Boldore|0.9|102.0|2.0|12.75
+Gigalith|1.7|260.0|2.0|32.5
+Woobat|0.4|2.1|1.75|0.2625
+Swoobat|0.9|10.5|1.75|1.3125
+Drilbur|0.3|8.5|1.75|1.0625
+Excadrill|0.7|40.4|1.75|5.05
+Audino|1.1|31.0|1.55|3.875
+Timburr|0.6|12.5|1.75|1.5625
+Gurdurr|1.2|40.0|1.55|5.0
+Conkeldurr|1.4|87.0|1.55|10.875
+Tympole|0.5|4.5|1.55|0.5625
+Palpitoad|0.8|17.0|1.55|2.125
+Seismitoad|1.5|62.0|1.55|7.75
+Throh|1.3|55.5|1.55|6.9375
+Sawk|1.4|51.0|1.55|6.375
+Sewaddle|0.3|2.5|1.75|0.3125
+Swadloon|0.5|7.3|1.75|0.9125
+Leavanny|1.2|20.5|1.55|2.5625
+Venipede|0.4|5.3|1.75|0.6625
+Whirlipede|1.2|58.5|1.55|7.3125
+Scolipede|2.5|200.5|1.55|25.0625
+Cottonee|0.3|0.6|1.75|0.075
+Whimsicott|0.7|6.6|1.75|0.825
+Petilil|0.5|6.6|2.0|0.825
+Lilligant|1.1|16.3|1.55|2.0375
+Lilligant Hisuian|1.2|19.2|1.4208|2.4
+Basculin|1.0|18.0|2.0|2.25
+Sandile|0.7|15.2|1.75|1.9
+Krokorok|1.0|33.4|1.75|4.175
+Krookodile|1.5|96.3|1.75|12.0375
+Darumaka|0.6|37.5|1.55|4.6875
+Darumaka Galarian|0.7|40.0|1.55|5.0
+Darmanitan Galarian Standard|1.7|120.0|1.55|15.0
+Darmanitan Galarian Zen|1.7|120.0|1.55|15.0
+Darmanitan Standard|1.3|92.9|1.55|11.6125
+Darmanitan Zen|1.3|92.9|1.55|11.6125
+Maractus|1.0|28.0|2.0|3.5
+Dwebble|0.3|14.5|1.75|1.8125
+Crustle|1.4|200.0|1.75|25.0
+Scraggy|0.6|11.8|1.75|1.475
+Scrafty|1.1|30.0|1.75|3.75
+Sigilyph|1.4|14.0|1.75|1.75
+Yamask|0.5|1.5|1.75|0.1875
+Yamask Galarian|0.5|1.5|1.75|0.1875
+Cofagrigus|1.7|76.5|1.55|9.5625
+Tirtouga|0.7|16.5|2.0|2.0625
+Carracosta|1.2|81.0|2.0|10.125
+Archen|0.5|9.5|2.0|1.1875
+Archeops|1.4|32.0|2.0|4.0
+Trubbish|0.6|31.0|1.55|3.875
+Garbodor|1.9|107.3|1.55|13.4125
+Zorua|0.7|12.5|1.75|1.5625
+Zorua Hisuian|0.7|12.5|1.75|1.5625
+Zoroark|1.6|81.1|1.55|10.1375
+Zoroark Hisuian|1.6|81.1|1.55|10.1375
+Minccino|0.4|5.8|1.75|0.725
+Cinccino|0.5|7.5|1.75|0.9375
+Gothita|0.4|5.8|1.75|0.725
+Gothorita|0.7|18.0|1.75|2.25
+Gothitelle|1.5|44.0|1.55|5.5
+Solosis|0.3|1.0|1.75|0.125
+Duosion|0.6|8.0|1.75|1.0
+Reuniclus|1.0|20.1|1.75|2.5125
+Ducklett|0.5|5.5|1.75|0.6875
+Swanna|1.3|24.2|1.75|3.025
+Vanillite|0.4|5.7|1.75|0.7125
+Vanillish|1.1|41.0|1.55|5.125
+Vanilluxe|1.3|57.5|1.55|7.1875
+Deerling|0.6|19.5|1.75|2.4375
+Sawsbuck|1.9|92.5|1.55|11.5625
+Emolga|0.4|5.0|1.75|0.625
+Karrablast|0.5|5.9|1.75|0.7375
+Escavalier|1.0|33.0|1.55|4.125
+Foongus|0.2|1.0|2.0|0.125
+Amoonguss|0.6|10.5|1.55|1.3125
+Frillish|1.2|33.0|1.55|4.125
+Jellicent|2.2|135.0|1.55|16.875
+Alomomola|1.2|31.6|2.0|3.95
+Joltik|0.1|0.6|1.55|0.075
+Galvantula|0.8|14.3|1.55|1.7875
+Ferroseed|0.6|18.8|2.0|2.35
+Ferrothorn|1.0|110.0|2.0|13.75
+Klink|0.3|21.0|2.0|2.625
+Klang|0.6|51.0|2.0|6.375
+Klinklang|0.6|81.0|2.0|10.125
+Tynamo|0.2|0.3|2.0|0.0375
+Eelektrik|1.2|22.0|2.0|2.75
+Eelektross|2.1|80.5|2.0|10.0625
+Elgyem|0.5|9.0|1.75|1.125
+Beheeyem|1.0|34.5|1.75|4.3125
+Litwick|0.3|3.1|1.75|0.3875
+Lampent|0.6|13.0|2.0|1.625
+Chandelure|1.0|34.3|2.0|4.2875
+Axew|0.6|18.0|1.75|2.25
+Fraxure|1.0|36.0|2.0|4.5
+Haxorus|1.8|105.5|2.0|13.1875
+Cubchoo|0.5|8.5|1.55|1.0625
+Beartic|2.6|260.0|1.55|32.5
+Cryogonal|1.1|148.0|2.0|18.5
+Shelmet|0.4|7.7|1.75|0.9625
+Accelgor|0.8|25.3|1.75|3.1625
+Stunfisk|0.7|11.0|1.75|1.375
+Stunfisk Galarian|0.7|20.5|1.75|2.5625
+Mienfoo|0.9|20.0|1.75|2.5
+Mienshao|1.4|35.5|1.55|4.4375
+Druddigon|1.6|139.0|2.0|17.375
+Golett|1.0|92.0|2.0|11.5
+Golurk|2.8|330.0|2.0|41.25
+Pawniard|0.5|10.2|1.75|1.275
+Bisharp|1.6|70.0|1.55|8.75
+Bouffalant|1.6|94.6|1.55|11.825
+Rufflet|0.5|10.5|1.75|1.3125
+Braviary|1.5|41.0|1.75|5.125
+Braviary Hisuian|1.7|43.4|1.75|5.425
+Vullaby|0.5|9.0|1.75|1.125
+Mandibuzz|1.2|39.5|2.0|4.9375
+Heatmor|1.4|58.0|1.75|7.25
+Durant|0.3|33.0|1.75|4.125
+Deino|0.8|17.3|1.75|2.1625
+Zweilous|1.4|50.0|1.75|6.25
+Hydreigon|1.8|160.0|1.75|20.0
+Larvesta|1.1|28.8|1.75|3.6
+Volcarona|1.6|46.0|1.75|5.75
+Cobalion|2.1|250.0|1.55|31.25
+Terrakion|1.9|260.0|1.55|32.5
+Virizion|2.0|200.0|1.55|25.0
+Tornadus Incarnate|1.5|63.0|1.55|7.875
+Tornadus Therian|1.4|63.0|1.55|7.875
+Thundurus Incarnate|1.5|61.0|1.55|7.625
+Thundurus Therian|3.0|61.0|1.55|7.625
+Reshiram|3.2|330.0|1.55|41.25
+Zekrom|2.9|345.0|1.55|43.125
+Landorus Incarnate|1.5|68.0|1.55|8.5
+Landorus Therian|1.3|68.0|1.55|8.5
+Kyurem|3.0|325.0|1.55|40.625
+Kyurem Black|3.3|325.0|1.4091|40.625
+Kyurem White|3.6|325.0|1.2917|40.625
+Keldeo|1.4|48.5|1.55|6.0625
+Meloetta Aria|0.6|6.5|1.55|0.8125
+Meloetta Pirouette|0.6|6.5|1.55|0.8125
+Genesect|1.5|82.5|1.55|10.3125
+Chespin|0.4|9.0|1.75|1.125
+Quilladin|0.7|29.0|1.75|3.625
+Chesnaught|1.6|90.0|1.75|11.25
+Fennekin|0.4|9.4|1.75|1.175
+Braixen|1.0|14.5|1.75|1.8125
+Delphox|1.5|39.0|1.75|4.875
+Froakie|0.3|7.0|1.75|0.875
+Frogadier|0.6|10.9|1.75|1.3625
+Greninja|1.5|40.0|1.75|5.0
+Bunnelby|0.4|5.0|1.75|0.625
+Diggersby|1.0|42.4|1.75|5.3
+Fletchling|0.3|1.7|1.75|0.2125
+Fletchinder|0.7|16.0|1.75|2.0
+Talonflame|1.2|24.5|2.0|3.0625
+Scatterbug|0.3|2.5|1.75|0.3125
+Spewpa|0.3|8.4|1.75|1.05
+Vivillon|1.2|17.0|1.75|2.125
+Litleo|0.6|13.5|1.75|1.6875
+Pyroar|1.5|81.5|1.55|10.1875
+Flabebe|0.1|0.1|1.75|0.0125
+Floette|0.2|0.9|1.75|0.1125
+Florges|1.1|10.0|1.75|1.25
+Skiddo|0.9|31.0|1.75|3.875
+Gogoat|1.7|91.0|1.55|11.375
+Pancham|0.6|8.0|1.75|1.0
+Pangoro|2.1|136.0|1.55|17.0
+Furfrou|1.2|28.0|1.55|3.5
+Espurr|0.3|3.5|1.75|0.4375
+Meowstic|0.6|8.5|1.75|1.0625
+Honedge|0.8|2.0|1.75|0.25
+Doublade|0.8|4.5|1.75|0.5625
+Aegislash|1.7|53.0|1.75|6.625
+Spritzee|0.2|0.5|1.75|0.0625
+Aromatisse|0.8|15.5|1.75|1.9375
+Swirlix|0.4|3.5|1.75|0.4375
+Slurpuff|0.8|5.0|1.75|0.625
+Inkay|0.4|3.5|2.0|0.4375
+Malamar|1.5|47.0|2.0|5.875
+Binacle|0.5|31.0|1.75|3.875
+Barbaracle|1.3|96.0|1.55|12.0
+Skrelp|0.5|7.3|1.75|0.9125
+Dragalge|1.8|81.5|1.75|10.1875
+Clauncher|0.5|8.3|1.75|1.0375
+Clawitzer|1.3|35.3|1.75|4.4125
+Helioptile|0.5|6.0|1.75|0.75
+Heliolisk|1.0|21.0|1.75|2.625
+Tyrunt|0.8|26.0|2.0|3.25
+Tyrantrum|2.5|270.0|2.0|33.75
+Amaura|1.3|25.2|2.0|3.15
+Aurorus|2.7|225.0|2.0|28.125
+Sylveon|1.0|23.5|1.55|2.9375
+Hawlucha|0.8|21.5|1.75|2.6875
+Dedenne|0.2|2.2|1.75|0.275
+Carbink|0.3|5.7|2.0|0.7125
+Goomy|0.3|2.8|1.75|0.35
+Sliggoo|0.8|17.5|1.75|2.1875
+Goodra|2.0|150.5|1.55|18.8125
+Klefki|0.2|3.0|1.75|0.375
+Phantump|0.4|7.0|1.75|0.875
+Trevenant|1.5|71.0|2.0|8.875
+Pumpkaboo Average|0.4|5.0|1.25|0.625
+Pumpkaboo Large|0.5|7.5|1.2|0.9375
+Pumpkaboo Small|0.3|3.5|1.3333|0.4375
+Pumpkaboo Super|0.8|15.0|1.0|1.875
+Gourgeist Average|0.9|12.5|1.2222|1.5625
+Gourgeist Large|1.1|14.0|1.2727|1.75
+Gourgeist Small|0.7|9.5|1.2857|1.1875
+Gourgeist Super|1.7|39.0|1.0|4.875
+Bergmite|1.0|99.5|1.55|12.4375
+Avalugg|2.0|505.0|1.55|63.125
+Avalugg Hisuian|1.4|262.4|2.2143|32.8
+Noibat|0.5|8.0|1.75|1.0
+Noivern|1.5|85.0|1.55|10.625
+Xerneas|3.0|215.0|1.55|26.875
+Yveltal|5.8|203.0|1.55|25.375
+Zygarde Complete|4.5|610.0|1.55|76.25
+Zygarde Fifty Percent|5.0|305.0|1.55|38.125
+Zygarde Ten Percent|1.2|33.5|1.55|4.1875
+Diancie|0.7|8.8|1.55|1.1
+Hoopa Confined|0.5|9.0|1.55|1.125
+Hoopa Unbound|6.5|490.0|1.55|61.25
+Volcanion|1.7|195.0|1.55|24.375
+Rowlet|0.3|1.5|1.55|0.1875
+Dartrix|0.7|16.0|1.55|2.0
+Decidueye|1.6|36.6|1.55|4.575
+Decidueye Hisuian|1.6|37.0|1.55|4.575
+Litten|0.4|4.3|1.55|0.5375
+Torracat|0.7|25.0|1.55|3.125
+Incineroar|1.8|83.0|1.55|10.375
+Popplio|0.4|7.5|1.55|0.9375
+Brionne|0.6|17.5|1.55|2.1875
+Primarina|1.8|44.0|1.55|5.5
+Pikipek|0.3|1.2|1.75|0.15
+Trumbeak|0.6|14.8|1.75|1.85
+Toucannon|1.1|26.0|1.75|3.25
+Yungoos|0.4|6.0|1.75|0.75
+Gumshoos|0.7|14.2|1.75|1.775
+Grubbin|0.4|4.4|1.75|0.55
+Charjabug|0.5|10.5|1.75|1.3125
+Vikavolt|1.5|45.0|1.75|5.625
+Crabrawler|0.6|7.0|1.75|0.875
+Crabominable|1.7|180.0|1.55|22.5
+Oricorio Baile|0.6|3.4|1.75|0.425
+Oricorio Pau|0.6|3.4|1.75|0.425
+Oricorio Pompom|0.6|3.4|1.75|0.425
+Oricorio Sensu|0.6|3.4|1.75|0.425
+Cutiefly|0.1|0.2|1.75|0.025
+Ribombee|0.2|0.5|1.75|0.0625
+Rockruff|0.5|9.2|1.75|1.15
+Rockruff Dusk|0.5|9.2|1.75|1.15
+Lycanroc Dusk|0.8|25.0|1.75|3.125
+Lycanroc Midday|0.8|25.0|1.75|3.125
+Lycanroc Midnight|1.1|25.0|1.75|3.125
+Wishiwashi School|8.2|78.6|2.0|9.825
+Wishiwashi Solo|0.2|0.3|2.0|0.0375
+Mareanie|0.4|8.0|1.75|1.0
+Toxapex|0.7|14.5|1.75|1.8125
+Mudbray|1.0|110.0|1.55|13.75
+Mudsdale|2.5|920.0|1.55|115.0
+Dewpider|0.3|4.0|1.75|0.5
+Araquanid|1.8|82.0|1.75|10.25
+Fomantis|0.3|1.5|2.0|0.1875
+Lurantis|0.9|18.5|2.0|2.3125
+Morelull|0.2|1.5|2.0|0.1875
+Shiinotic|1.0|11.5|2.0|1.4375
+Salandit|0.6|4.8|1.75|0.6
+Salazzle|1.2|22.2|1.55|2.775
+Stufful|0.5|6.8|1.75|0.85
+Bewear|2.1|135.0|1.55|16.875
+Bounsweet|0.3|3.2|2.0|0.4
+Steenee|0.7|8.2|2.0|1.025
+Tsareena|1.2|21.4|1.55|2.675
+Comfey|0.1|0.3|2.0|0.0375
+Oranguru|1.5|76.0|1.55|9.5
+Passimian|2.0|82.8|1.55|10.35
+Wimpod|0.5|12.0|1.75|1.5
+Golisopod|2.0|108.0|1.55|13.5
+Sandygast|0.5|70.0|2.0|8.75
+Palossand|1.3|250.0|2.0|31.25
+Pyukumuku|0.3|1.2|1.75|0.15
+Type Null|1.9|120.5|1.55|15.0625
+Silvally|2.3|100.5|1.55|12.5625
+Silvally Bug|2.3|100.5|1.55|12.5625
+Silvally Dark|2.3|100.5|1.55|12.5625
+Silvally Dragon|2.3|100.5|1.55|12.5625
+Silvally Electric|2.3|100.5|1.55|12.5625
+Silvally Fairy|2.3|100.5|1.55|12.5625
+Silvally Fighting|2.3|100.5|1.55|12.5625
+Silvally Fire|2.3|100.5|1.55|12.5625
+Silvally Flying|2.3|100.5|1.55|12.5625
+Silvally Ghost|2.3|100.5|1.55|12.5625
+Silvally Grass|2.3|100.5|1.55|12.5625
+Silvally Ground|2.3|100.5|1.55|12.5625
+Silvally Ice|2.3|100.5|1.55|12.5625
+Silvally Poison|2.3|100.5|1.55|12.5625
+Silvally Psychic|2.3|100.5|1.55|12.5625
+Silvally Rock|2.3|100.5|1.55|12.5625
+Silvally Steel|2.3|100.5|1.55|12.5625
+Silvally Water|2.3|100.5|1.55|12.5625
+Minior|0.3|40.0|1.75|5.0
+Komala|0.4|19.9|1.75|2.4875
+Turtonator|2.0|212.0|1.55|26.5
+Togedemaru|0.3|3.3|1.75|0.4125
+Mimikyu|0.2|0.7|1.75|0.0875
+Bruxish|0.9|19.0|2.0|2.375
+Drampa|3.0|185.0|1.55|23.125
+Dhelmise|3.9|210.0|2.0|26.25
+Jangmo O|0.6|29.7|1.75|3.7125
+Hakamo O|1.2|47.0|1.75|5.875
+Kommo O|1.6|78.2|1.75|9.775
+Tapu Koko|1.8|20.5|1.55|2.5625
+Tapu Lele|1.2|18.6|1.55|2.325
+Tapu Bulu|1.9|45.5|1.55|5.6875
+Tapu Fini|1.3|21.2|1.55|2.65
+Cosmog|0.2|0.1|1.55|0.0125
+Cosmoem|0.1|999.9|1.55|124.9875
+Solgaleo|3.4|230.0|1.55|28.75
+Lunala|4.0|120.0|1.55|15.0
+Nihilego|1.2|55.5|1.55|6.9375
+Buzzwole|2.4|333.6|1.55|41.7
+Pheromosa|1.8|25.0|1.55|3.125
+Xurkitree|3.8|100.0|1.55|12.5
+Celesteela|9.2|999.9|1.55|124.9875
+Kartana|0.3|0.1|1.55|0.0125
+Guzzlord|5.5|888.0|1.55|111.0
+Necrozma|2.4|230.0|1.55|28.75
+Necrozma Dawn Wings|4.2|350.0|1.55|43.75
+Necrozma Dusk Mane|3.8|460.0|1.55|57.5
+Necrozma Ultra|7.5|230.0|1.55|28.75
+Magearna|1.0|80.5|1.55|10.0625
+Marshadow|0.7|22.2|1.55|2.775
+Poipole|0.6|1.8|1.55|0.225
+Naganadel|3.6|150.0|1.55|18.75
+Stakataka|5.5|820.0|1.55|102.5
+Blacephalon|1.8|13.0|1.55|1.625
+Zeraora|1.5|44.5|1.55|5.5625
+Meltan|0.2|8.0|1.75|1.0
+Melmetal|2.5|800.0|1.55|100.0
+Grookey|0.3|5.0|1.55|0.625
+Thwackey|0.7|14.0|1.55|1.75
+Rillaboom|2.1|90.0|1.55|11.25
+Scorbunny|0.3|4.5|1.75|0.5625
+Raboot|0.6|9.0|1.75|1.125
+Cinderace|1.4|33.0|1.75|4.125
+Sobble|0.3|4.0|1.55|0.5
+Drizzile|0.7|11.5|1.55|1.4375
+Inteleon|1.9|45.2|1.55|5.65
+Skwovet|0.3|2.5|1.75|0.3125
+Greedent|0.6|6.0|1.75|0.75
+Rookidee|0.2|1.8|1.75|0.225
+Corvisquire|0.8|16.0|1.75|2.0
+Corviknight|2.2|75.0|1.55|9.375
+Blipbug|0.4|8.0|1.75|1.0
+Dottler|0.4|19.5|1.75|2.4375
+Orbeetle|0.4|40.8|2.0|5.1
+Nickit|0.6|8.9|1.75|1.1125
+Thievul|1.2|19.9|1.75|2.4875
+Gossifleur|0.4|2.2|2.0|0.275
+Eldegoss|0.5|2.5|2.0|0.3125
+Wooloo|0.6|6.0|1.75|0.75
+Dubwool|1.3|43.0|1.55|5.375
+Chewtle|0.3|8.5|1.75|1.0625
+Drednaw|1.0|115.5|1.75|14.4375
+Yamper|0.3|13.5|1.75|1.6875
+Boltund|1.0|34.0|1.75|4.25
+Rolycoly|0.3|12.0|1.75|1.5
+Carkol|1.1|78.0|1.75|9.75
+Coalossal|2.8|310.5|1.55|38.8125
+Applin|0.2|0.5|1.75|0.0625
+Flapple|0.3|1.0|1.75|0.125
+Appletun|0.4|13.0|1.75|1.625
+Silicobra|2.2|7.6|1.55|0.95
+Sandaconda|3.8|65.5|1.55|8.1875
+Cramorant|0.8|18.0|1.75|2.25
+Arrokuda|0.5|1.0|2.0|0.125
+Barraskewda|1.3|30.0|2.0|3.75
+Toxel|0.4|11.0|1.75|1.375
+Toxtricity|1.6|40.0|1.55|5.0
+Sizzlipede|0.7|1.0|1.75|0.125
+Centiskorch|3.0|120.0|1.55|15.0
+Clobbopus|0.6|4.0|1.75|0.5
+Grapploct|1.6|39.0|1.55|4.875
+Sinistea|0.1|0.2|1.75|0.025
+Polteageist|0.2|0.4|1.75|0.05
+Hatenna|0.4|3.4|1.75|0.425
+Hattrem|0.6|4.8|1.75|0.6
+Hatterene|2.1|5.1|1.55|0.6375
+Impidimp|0.4|5.5|1.75|0.6875
+Morgrem|0.8|12.5|1.75|1.5625
+Grimmsnarl|1.5|61.0|1.55|7.625
+Obstagoon|1.6|46.0|1.55|5.75
+Perrserker|0.8|28.0|1.75|3.5
+Cursola|1.0|0.4|1.75|0.05
+Sirfetchd|0.8|117.0|1.75|14.625
+Mr Rime|1.5|58.2|1.55|7.275
+Runerigus|1.6|66.6|1.55|8.325
+Milcery|0.2|0.3|2.0|0.0375
+Alcremie|0.3|0.5|2.0|0.0625
+Falinks|3.0|62.0|1.55|7.75
+Pincurchin|0.3|1.0|1.75|0.125
+Snom|0.3|3.8|1.75|0.475
+Frosmoth|1.3|42.0|1.75|5.25
+Stonjourner|2.5|520.0|2.0|65.0
+Eiscue|1.4|89.0|1.55|11.125
+Indeedee|0.9|28.0|1.75|3.5
+Morpeko|0.3|3.0|1.75|0.375
+Cufant|1.2|100.0|1.75|12.5
+Copperajah|1.2|100.0|1.75|12.5
+Dracozolt|1.8|190.0|1.55|23.75
+Arctozolt|2.3|150.0|1.55|18.75
+Dracovish|2.3|215.0|1.55|26.875
+Arctovish|2.0|175.0|1.55|21.875
+Duraludon|1.8|40.0|1.75|5.0
+Dreepy|0.5|2.0|1.75|0.25
+Drakloak|1.4|11.0|1.75|1.375
+Dragapult|3.0|50.0|1.75|6.25
+Zacian Crowned Sword|2.8|110.0|1.55|13.75
+Zacian Hero|2.8|110.0|1.55|13.75
+Zamazenta Crowned Shield|2.9|210.0|1.55|26.25
+Zamazenta Hero|2.9|210.0|1.55|26.25
+Eternatus|20.0|950.0|1.55|118.75
+Kubfu|0.6|12.0|1.55|1.5
+Urshifu Rapid Strike|1.9|105.0|1.55|13.125
+Urshifu Single Strike|1.9|105.0|1.55|13.125
+Zarude|1.8|70.0|1.55|8.75
+Regieleki|1.2|145.0|1.55|18.125
+Regidrago|2.1|200.0|1.55|25.0
+Glastrier|2.2|800.0|1.55|100.0
+Spectrier|2.0|44.5|1.55|5.5625
+Calyrex|1.1|7.7|1.55|0.9625
+Calyrex Ice Rider|2.4|809.1|1.55|101.1375
+Calyrex Shadow Rider|2.4|53.6|1.55|6.7
+Wyrdeer|1.8|95.1|1.55|11.8875
+Kleavor|1.8|89.0|1.55|11.125
+Ursaluna|2.4|290.0|1.55|36.25
+Sneasler|1.3|43.0|1.55|5.375
+Overqwil|2.5|60.5|1.75|7.5625
+Enamorus Incarnate|1.6|48.0|1.55|6.0
+Enamorus Therian|1.6|48.0|1.55|6.0
+Sprigatito|0.4|4.1|1.55|0.5125
+Floragato|0.9|12.2|1.55|1.525
+Meowscarada|1.5|31.2|1.55|3.9
+Fuecoco|0.4|9.8|1.55|1.225
+Crocalor|1.0|30.7|1.55|3.8375
+Skeledirge|1.6|326.5|1.55|40.8125
+Quaxly|0.5|6.1|1.55|0.7625
+Quaxwell|1.2|21.5|1.55|2.6875
+Quaquaval|1.8|61.9|1.55|7.7375
+Lechonk|0.5|10.2|1.55|1.275
+Oinkologne|1.0|120.0|1.55|15.0
+Tarountula|0.3|4.0|1.75|0.5
+Spidops|1.0|16.5|1.75|2.0625
+Nymble|0.2|1.0|1.75|0.125
+Lokix|1.0|17.5|1.75|2.1875
+Pawmi|0.3|2.5|1.55|0.3125
+Pawmo|0.4|6.5|1.55|0.8125
+Pawmot|0.9|41.0|1.55|5.125
+Tandemaus|0.3|1.8|1.55|0.225
+Maushold Family Of Four|0.3|2.8|1.55|0.35
+Maushold Family Of Three|0.3|2.3|1.55|0.2875
+Fidough|0.3|10.9|1.55|1.3625
+Dachsbun|0.5|14.9|1.55|1.8625
+Smoliv|0.3|6.5|1.75|0.8125
+Dolliv|0.6|11.9|1.75|1.4875
+Arboliva|1.4|48.2|1.75|6.025
+Squawkabilly|0.6|2.4|1.55|0.3
+Nacli|0.4|16.0|2.0|2.0
+Naclstack|0.6|105.0|2.0|13.125
+Garganacl|2.3|240.0|2.0|30.0
+Charcadet|0.6|10.5|1.55|1.3125
+Armarouge|1.5|85.0|1.55|10.625
+Ceruledge|1.6|62.0|1.55|7.75
+Tadbulb|0.3|0.4|1.55|0.05
+Bellibolt|1.2|113.0|1.55|14.125
+Wattrel|0.4|3.6|1.75|0.45
+Kilowattrel|1.4|38.6|1.75|4.825
+Maschiff|0.5|16.0|1.55|2.0
+Mabosstiff|1.1|61.0|1.55|7.625
+Shroodle|0.2|0.7|1.55|0.0875
+Grafaiai|0.7|27.2|1.55|3.4
+Bramblin|0.6|0.6|1.75|0.075
+Brambleghast|1.2|6.0|1.75|0.75
+Toedscool|0.9|33.0|1.55|4.125
+Toedscruel|1.9|58.0|1.55|7.25
+Klawf|1.3|79.0|2.0|9.875
+Capsakid|0.3|3.0|1.75|0.375
+Scovillain|0.9|15.0|1.75|1.875
+Rellor|0.2|1.0|1.75|0.125
+Rabsca|0.3|3.5|1.75|0.4375
+Flittle|0.2|1.5|1.75|0.1875
+Espathra|1.9|90.0|1.75|11.25
+Tinkatink|0.4|8.9|1.55|1.1125
+Tinkatuff|0.7|59.1|1.55|7.3875
+Tinkaton|0.7|112.8|1.55|14.1
+Wiglett|1.2|1.8|1.55|0.225
+Wugtrio|1.2|5.4|1.55|0.675
+Bombirdier|1.5|42.9|1.75|5.3625
+Finizen|1.3|60.2|1.75|7.525
+Palafin Hero|1.8|97.4|1.75|12.175
+Palafin Zero|1.3|60.2|1.75|7.525
+Varoom|1.0|35.0|1.75|4.375
+Revavroom|1.8|120.0|1.75|15.0
+Cyclizar|1.6|63.0|1.55|7.875
+Orthworm|2.5|310.0|2.0|38.75
+Glimmet|0.7|8.0|1.75|1.0
+Glimmora|1.5|45.0|1.75|5.625
+Greavard|0.6|35.0|1.55|4.375
+Houndstone|2.0|15.0|1.55|1.875
+Flamigo|1.6|37.0|1.75|4.625
+Cetoddle|1.2|45.0|1.55|5.625
+Cetitan|4.5|700.0|1.55|87.5
+Veluza|2.5|90.0|1.75|11.25
+Dondozo|12.0|220.0|1.75|27.5
+Tatsugiri|0.3|8.0|1.75|1.0
+Annihilape|1.2|56.0|1.55|7.0
+Clodsire|1.8|223.0|1.55|27.875
+Farigiraf|3.2|160.0|2.0|20.0
+Dudunsparce Three|4.5|47.4|1.55|5.925
+Dudunsparce Two|3.6|39.2|1.55|4.9
+Kingambit|2.0|120.0|1.55|15.0
+Greattusk|2.2|320.0|2.0|40.0
+Screamtail|1.2|8.0|1.55|1.0
+Brutebonnet|1.2|21.0|1.55|2.625
+Fluttermane|1.4|4.0|1.55|0.5
+Slitherwing|3.2|92.0|1.55|11.5
+Sandyshocks|2.3|60.0|1.55|7.5
+Irontreads|0.9|240.0|2.0|30.0
+Ironbundle|0.6|11.0|1.55|1.375
+Ironhands|1.8|380.7|1.55|47.5875
+Ironjugulis|1.3|111.0|2.0|13.875
+Ironmoth|1.2|36.0|2.0|4.5
+Ironthorns|1.6|303.0|2.0|37.875
+Frigibax|0.5|17.0|1.75|2.125
+Arctibax|0.8|30.0|1.75|3.75
+Baxcalibur|2.1|210.0|1.75|26.25
+Gimmighoul|0.1|0.1|1.55|0.0125
+Gholdengo|1.2|30.0|1.55|3.75
+Wochien|1.5|74.2|1.55|9.275
+Chienpao|1.9|152.2|1.55|19.025
+Tinglu|2.7|669.7|1.55|83.7125
+Chiyu|0.4|4.9|1.55|0.6125
+Roaringmoon|2.0|380.0|1.55|47.5
+Ironvaliant|1.4|35.0|1.55|4.375
+Koraidon|2.5|303.0|1.55|37.875
+Miraidon|3.5|240.0|1.55|30.0
+Walkingwake|3.5|280.0|1.55|35.0
+Ironleaves|1.5|125.0|1.55|15.625
+Dipplin|0.4|4.4|1.55|0.55
+Poltchageist|0.1|1.1|1.55|0.1375
+Sinistcha|0.2|2.2|1.55|0.275
+Okidogi|1.8|92.2|1.55|11.525
+Munkidori|1.0|12.2|1.55|1.525
+Fezandipiti|1.4|30.1|1.55|3.7625
+Ogerpon|1.2|39.8|1.55|4.975
+Archaludon|2.0|60.0|1.55|7.5
+Hydrapple|1.8|93.0|1.55|11.625
+Gougingfire|3.5|590.0|1.55|73.75
+Ragingbolt|5.2|480.0|1.55|60.0
+Ironboulder|1.5|162.5|1.55|20.3125
+Ironcrown|1.6|156.0|1.55|19.5
+Terapagos|0.2|6.5|1.55|0.8125
+Pecharunt|0.3|0.3|1.55|0.0375
+Ursaluna Bloodmoon|2.7|333.0|1.55|41.625
+Ogerpon Wellspring Mask|1.2|39.8|1.55|4.975
+Ogerpon Hearthflame Mask|1.2|39.8|1.55|4.975
+Ogerpon Cornerstone Mask|1.2|39.8|1.55|4.975
+Terapagos Terastal Form|0.3|16.0|1.55|2.0
+Terapagos Stellar Form|1.7|77.0|1.55|9.625
+Sliggoo Hisuian|0.7|68.5|1.55|8.5625
+Goodra Hisuian|1.7|334.1|1.55|41.7625
+Basculegion|3.0|110.0|1.55|13.75
+Gimmighoul Chest|0.3|5.0|1.55|0.625`;
+  const DB = {};
+  RAW.trim().split("\n").forEach(line=>{
+    const p = line.split("|");
+    DB[p[0].toLowerCase()] = { name:p[0], h:parseFloat(p[1]), w:parseFloat(p[2]), mhg:parseFloat(p[3]), wdev:parseFloat(p[4]) };
+  });
+
+  const NAMES = Object.values(DB).sort((a,b)=>a.name.localeCompare(b.name));
+
+  const $ = id => document.getElementById(id);
+  const speciesInput = $('species');
+  const suggestBox = $('suggestions');
+
+  function renderSuggestions(query){
+    const q = query.trim().toLowerCase();
+    if(!q){ suggestBox.classList.remove('show'); suggestBox.innerHTML=''; return; }
+    const matches = NAMES.filter(e => e.name.toLowerCase().startsWith(q));
+    if(matches.length === 0){
+      suggestBox.innerHTML = '<div class="none">No matches</div>';
+    } else {
+      suggestBox.innerHTML = matches.map(e => `<div class="opt" data-name="${e.name}">${e.name}</div>`).join('');
+    }
+    suggestBox.classList.add('show');
+  }
+
+  speciesInput.addEventListener('input', () => renderSuggestions(speciesInput.value));
+  speciesInput.addEventListener('focus', () => renderSuggestions(speciesInput.value));
+
+  suggestBox.addEventListener('mousedown', (e) => {
+    const opt = e.target.closest('.opt');
+    if(!opt) return;
+    speciesInput.value = opt.dataset.name;
+    suggestBox.classList.remove('show');
+    suggestBox.innerHTML = '';
+  });
+
+  document.addEventListener('click', (e) => {
+    if(e.target !== speciesInput && !suggestBox.contains(e.target)){
+      suggestBox.classList.remove('show');
+    }
+  });
+  const errorEl = $('error');
+  const resultEl = $('result');
+
+  function showError(msg){
+    errorEl.textContent = msg;
+    errorEl.classList.add('show');
+    resultEl.classList.remove('show');
+  }
+  function clearError(){
+    errorEl.classList.remove('show');
+  }
+
+  $('calc').addEventListener('click', () => {
+    clearError();
+    const speciesInput = $('species').value.trim();
+    const entry = DB[speciesInput.toLowerCase()];
+    if(!entry){
+      showError('Pick a Pokémon from the list to continue.');
+      return;
+    }
+    const H = parseFloat($('height').value);
+    const W = parseFloat($('weight').value);
+    const ivAtk = parseFloat($('ivatk').value);
+    const ivDef = parseFloat($('ivdef').value);
+    const ivSta = parseFloat($('ivsta').value);
+    if([H,W,ivAtk,ivDef,ivSta].some(v => isNaN(v))){
+      showError('Fill in height, weight, and all three IVs.');
+      return;
+    }
+    if(ivAtk<0||ivAtk>15||ivDef<0||ivDef>15||ivSta<0||ivSta>15){
+      showError('IVs must be between 0 and 15.');
+      return;
+    }
+    const size = $('size').value;
+    const isXXL = size === 'XXL';
+
+    const ivSum = ivAtk + ivDef + ivSta;
+    const ivPart = 50 * (ivSum/45);
+    const hPart = 800 * (H / (entry.h * entry.mhg));
+    const wPart = 150 * (W / (entry.w * entry.mhg + 4 * entry.wdev));
+    const xxlPart = isXXL ? 7300/41 : 0;
+    const total = ivPart + hPart + wPart + xxlPart;
+
+    $('score').textContent = total.toFixed(2);
+    $('b-iv').textContent = ivPart.toFixed(2);
+    $('b-h').textContent = hPart.toFixed(2);
+    $('b-w').textContent = wPart.toFixed(2);
+    $('b-xxl').textContent = xxlPart.toFixed(2);
+    $('xxlbadge').innerHTML = isXXL ? '<span class="xxl-badge">XXL bonus applied</span>' : '';
+    resultEl.classList.add('show');
+  });
+</script>
+</body>
+</html>
