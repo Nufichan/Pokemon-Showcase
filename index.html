@@ -12,13 +12,13 @@
     --card:rgba(255,255,255,0.06);
     --card-border:rgba(255,255,255,0.14);
     --text:#f2eefb;
-    --text-dim:#b6aed6;
+    --text-dim:#d6cfef;
     --gold:#ffcb05;
     --gold-deep:#e0a800;
     --coral:#ff5a6e;
     --teal:#43d9ad;
     --field-bg:rgba(255,255,255,0.08);
-    --field-border:rgba(255,255,255,0.18);
+    --field-border:rgG-Xba(255,255,255,0.18);
     --radius:16px;
     --font: 'Poppins', 'Segoe UI', system-ui, -apple-system, sans-serif;
   }
@@ -94,6 +94,7 @@
     outline:none; transition:border-color .15s, background .15s;
   }
   .input-base:focus{border-color:var(--gold); background:rgba(255,255,255,0.12);}
+  .input-base::placeholder{color:var(--text-dim); opacity:0.85;}
   :root[data-theme="light"] .input-base:focus, @media (prefers-color-scheme:light){.input-base:focus{background:rgba(255,255,255,0.9);}}
   select.input-base{ -webkit-appearance:none; appearance:none;
     background-image:linear-gradient(45deg, transparent 50%, var(--text-dim) 50%), linear-gradient(135deg, var(--text-dim) 50%, transparent 50%);
@@ -155,6 +156,17 @@
   .social svg{width:19px; height:19px; fill:#000;}
   .social:hover{transform:translateY(-2px); border-color:var(--gold);}
 </style>
+  <!-- Analytics: only works once this file is hosted on your own domain (e.g. GitHub Pages) —
+       the claude.ai artifact link blocks external scripts, so this will silently do nothing there.
+       1) Create a free Google Analytics 4 property at analytics.google.com, get your Measurement ID (looks like "XXXXXXXXX").
+       2) Replace both "G-SLBT0FGE6R" below with your actual Measurement ID. -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-SLBT0FGE6R"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-SLBT0FGE6R');
+  </script>
 </head>
 <body>
 <div class="wrap">
@@ -233,7 +245,7 @@
   </div>
 
   <div class="socials">
-    <a href="https://www.facebook.com/AbooSamin" target="_blank" rel="noopener" aria-label="Facebook" class="social">
+    <a href="https://www.facebook.com/profile.php?id=61585791615632" target="_blank" rel="noopener" aria-label="Facebook" class="social">
       <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M504 256C504 119 393 8 256 8S8 119 8 256c0 123.78 90.69 226.38 209.25 245V327.69h-63V256h63v-54.64c0-62.15 37-96.48 93.67-96.48 27.14 0 55.52 4.84 55.52 4.84v61h-31.28c-30.8 0-40.41 19.12-40.41 38.73V256h68.78l-11 71.69h-57.78V501C413.31 482.38 504 379.78 504 256z"/></svg>
     </a>
     <a href="https://www.instagram.com/aboo_samin" target="_blank" rel="noopener" aria-label="Instagram" class="social">
