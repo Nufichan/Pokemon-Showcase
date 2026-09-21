@@ -166,6 +166,8 @@
     gtag('js', new Date());
     gtag('config', 'G-SLBT0FGE6R');
   </script>
+  <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1d1b3a">
 </head>
 <body>
 <div class="wrap">
@@ -1525,5 +1527,10 @@ Gimmighoul Chest|0.3|5.0|1.55|0.625`;
     resultEl.classList.add('show');
   });
 </script>
+  <script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js');
+}
+  </script>
 </body>
 </html>
