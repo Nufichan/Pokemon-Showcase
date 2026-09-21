@@ -7,13 +7,13 @@
   "theme_color": "#1d1b3a",
   "icons": [
     {
-      "src": "https://raw.githubusercontent.com/Nufichan/Poke_Guess2.0/main/Photos/SFX/Icon.png",
+      "src": "https://raw.githubusercontent.com/Nufichan/Poke_Guess2.0/main/Photos/SFX/GardeIcon.jpg",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://raw.githubusercontent.com/Nufichan/Poke_Guess2.0/main/Photos/SFX/Icon.png",
+      "src": "https://raw.githubusercontent.com/Nufichan/Poke_Guess2.0/main/Photos/SFX/GardeIcon.jpg",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
