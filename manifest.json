@@ -1,6 +1,6 @@
 {
   "name": "Pokemon Showcase Calculator",
-  "short_name": "ShowCalc",
+  "short_name": "Showcase",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#1d1b3a",
