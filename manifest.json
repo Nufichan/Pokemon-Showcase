@@ -9,12 +9,14 @@
     {
       "src": "https://raw.githubusercontent.com/Nufichan/Poke_Guess2.0/main/Photos/Companion/Misty.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "https://raw.githubusercontent.com/Nufichan/Poke_Guess2.0/main/Photos/Companion/Misty.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }
